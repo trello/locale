@@ -9,7 +9,8 @@ defaultLocale = locale.Locale.default
 before (callback) ->
   app = do express
 
-  app.use locale ["en-US", "fr", "fr-CA", "en", "ja", "de", "da-DK"]
+  app.use locale ["en-US", "fr", "fr-CA", "en", "ja", "de", "da-DK", "zh-Hans",
+    "zh-Hant"]
   app.get "/", (req, res) ->
     res.set "content-language", req.locale
     res.set "defaulted", req.rawLocale.defaulted
@@ -96,6 +97,25 @@ describe "Priority", ->
       assert.equal(
         res.headers["content-language"]
         "fr-CA"
+      )
+      assert.equal(false, !res.headers["defaulted"])
+      callback()
+
+describe "Special case", ->
+  it "should match zh-CN to zh-Hans", (callback) ->
+    http.get port: 8001, headers: "Accept-Language": "zh_cn", (res) ->
+      assert.equal(
+        res.headers["content-language"]
+        "zh-Hans"
+      )
+      assert.equal(false, !res.headers["defaulted"])
+      callback()
+
+  it "should match zh-TW to zh-Hant", (callback) ->
+    http.get port: 8001, headers: "Accept-Language": "zh-TW", (res) ->
+      assert.equal(
+        res.headers["content-language"]
+        "zh-Hant"
       )
       assert.equal(false, !res.headers["defaulted"])
       callback()

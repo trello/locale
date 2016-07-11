@@ -12,6 +12,20 @@ app = (supported) ->
     do next
 
 class app.Locale
+
+  # Chrome sends 'zh_TW' (Mandarin as spoken in Taiwan) if you choose
+  # 'Chinese Traditional' in the language settings and 'zh_CN' (Mandarin as
+  # spoken in China) for 'Chinese Simplified'.
+  # If you wish to map those tags to 'zh-HANT' (Traditional) and 'zh-HANS'
+  # (Simplified) which are the ISO lang codes, you need some kind of support
+  # for CLDR language matching
+  # (http://www.unicode.org/reports/tr35/#LanguageMatching) which specifies
+  # a mapping algorithm. `@substitutions` is not that support, but is a
+  # band-aid for this particular special case.
+  @substitutions =
+    'zh_TW': 'zh_HANT'
+    'zh_CN': 'zh_HANS'
+
   @default: new Locale process.env.LANG or "en_US"
 
   constructor: (str) ->
@@ -26,6 +40,7 @@ class app.Locale
     normalized = [@language]
     normalized.push @country if @country
     @normalized = normalized.join "_"
+    @normalized = Locale.substitutions[@normalized] ? @normalized
 
   serialize = ->
     if @language
